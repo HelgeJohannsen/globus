@@ -77,6 +77,14 @@ app.prepare().then(async () => {
       console.log(`Failed to process webhook: ${error}`);
     }
   });
+  router.post("/checkoutCreate", async (ctx) => {
+    try {
+    console.log(ctx.req + ctx.res +     ctx.req.headers);
+
+    } catch (error) {
+      console.log(`Failed to process webhook: ${error}`);
+    }
+  });
 
   router.post(
     "/graphql",
