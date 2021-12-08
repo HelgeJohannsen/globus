@@ -79,7 +79,7 @@ app.prepare().then(async () => {
   });
   router.post("/checkoutCreate", async (ctx) => {
     try {
-    console.log(ctx.req + ctx.res +     ctx.req.headers);
+    console.log(ctx + JSON.stringify(ctx.request.body) +     ctx.req.headers);
 
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
