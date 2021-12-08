@@ -82,6 +82,7 @@ app.prepare().then(async () => {
     try {
       let body = ctx.body;
       if (!body || body.pipe) return;
+      console.log("test" + ctx.toString());
 
       if (Buffer.isBuffer(body)) body = body.toString();
       console.log(body);
