@@ -6,6 +6,7 @@ import Shopify, { ApiVersion } from "@shopify/shopify-api";
 import Koa from "koa";
 import next from "next";
 import Router from "koa-router";
+const bodyParser = require('koa-bodyparser');
 
 dotenv.config();
 const port = parseInt(process.env.PORT, 10) || 8081;
@@ -30,6 +31,7 @@ Shopify.Context.initialize({
 // persist this object in your app.
 const ACTIVE_SHOPIFY_SHOPS = {};
 
+app.use(bodyParser());
 app.prepare().then(async () => {
   const server = new Koa();
   const router = new Router();
@@ -79,7 +81,7 @@ app.prepare().then(async () => {
   });
   router.post("/checkoutCreate", async (ctx) => {
     try {
-    console.log(ctx + JSON.stringify(ctx.request.body) +     ctx.req.headers);
+    console.log(ctx.request.body + JSON.stringify(ctx.request.body) +     ctx.req.headers);
 
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
