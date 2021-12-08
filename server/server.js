@@ -78,11 +78,14 @@ app.prepare().then(async () => {
       console.log(`Failed to process webhook: ${error}`);
     }
   });
-  router.post("/checkoutCreate", async (ctx) => {
+  router.post("/checkoutCreate", async (ctx, next) => {
+    await next();
     try {
-      console.log(
-        ctx.request.body + JSON.stringify(ctx.request.body) + ctx.req.headers
-      );
+      let body = ctx.body;
+      if (!body || body.pipe) return;
+
+      if (Buffer.isBuffer(body)) body = body.toString();
+      console.log(body);
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
     }
