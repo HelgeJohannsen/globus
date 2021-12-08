@@ -31,7 +31,6 @@ Shopify.Context.initialize({
 // persist this object in your app.
 const ACTIVE_SHOPIFY_SHOPS = {};
 
-app.use(bodyParser());
 app.prepare().then(async () => {
   const server = new Koa();
   const router = new Router();
@@ -81,8 +80,9 @@ app.prepare().then(async () => {
   });
   router.post("/checkoutCreate", async (ctx) => {
     try {
-    console.log(ctx.request.body + JSON.stringify(ctx.request.body) +     ctx.req.headers);
-
+      console.log(
+        ctx.request.body + JSON.stringify(ctx.request.body) + ctx.req.headers
+      );
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
     }
