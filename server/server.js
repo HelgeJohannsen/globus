@@ -6,6 +6,7 @@ import Shopify, { ApiVersion } from "@shopify/shopify-api";
 import Koa from "koa";
 import next from "next";
 import Router from "koa-router";
+const koaBody = require("koa-body");
 
 dotenv.config();
 const port = parseInt(process.env.PORT, 10) || 8081;
@@ -77,18 +78,39 @@ app.prepare().then(async () => {
       console.log(`Failed to process webhook: ${error}`);
     }
   });
-  router.post("/checkoutCreate", async (ctx, next) => {
-    await next();
-    try {
-      let body = ctx.body;
-      if (!body || body.pipe) return;
-      console.log("test" + ctx.toString());
+  router.get("/settings", async (ctx) => {
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+    const shop = session.shop;
 
-      if (Buffer.isBuffer(body)) body = body.toString();
-      console.log(body);
-    } catch (error) {
-      console.log(`Failed to process webhook: ${error}`);
+    // This shop hasn't been seen yet, go through OAuth to create a session
+    if (session === undefined || ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+      ctx.redirect(`/auth?shop=${shop}`);
+      return;
     }
+
+    const shopSettings = ACTIVE_SHOPIFY_SHOPS[shop].settings;
+
+    if (!shopSettings.productId) {
+      ctx.status = 200;
+      ctx.body = {
+        status: "EMPTY_SETTINGS",
+        data: undefined,
+      };
+      return;
+    }
+
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    const productDetails = await client.get({
+      path: `products/${shopSettings.productId}`,
+      type: DataType.JSON,
+    });
+
+    ctx.body = {
+      status: "OK_SETTINGS",
+      data: productDetails.body.product,
+    };
+    ctx.status = 200;
   });
 
   router.post(
