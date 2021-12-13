@@ -6,6 +6,7 @@ import Shopify, { ApiVersion } from "@shopify/shopify-api";
 import Koa from "koa";
 import next from "next";
 import Router from "koa-router";
+const koaBody = require("koa-body");
 
 dotenv.config();
 const port = parseInt(process.env.PORT, 10) || 8081;
@@ -26,7 +27,6 @@ Shopify.Context.initialize({
   SESSION_STORAGE: new Shopify.Session.MemorySessionStorage(),
 });
 
-// Storing the currently active shops in memory will force them to re-login when your server restarts. You should
 // persist this object in your app.
 const ACTIVE_SHOPIFY_SHOPS = {};
 
@@ -40,15 +40,20 @@ app.prepare().then(async () => {
         // Access token and shop available in ctx.state.shopify
         const { shop, accessToken, scope } = ctx.state.shopify;
         const host = ctx.query.host;
-        ACTIVE_SHOPIFY_SHOPS[shop] = scope;
+
+        ACTIVE_SHOPIFY_SHOPS[shop] = {
+          scope,
+          settings: {
+            productId: undefined,
+          },
+        };
 
         const response = await Shopify.Webhooks.Registry.register({
           shop,
           accessToken,
           path: "/webhooks",
           topic: "APP_UNINSTALLED",
-          webhookHandler: async (topic, shop, body) =>
-            delete ACTIVE_SHOPIFY_SHOPS[shop],
+          webhookHandler: async (_, shop) => delete ACTIVE_SHOPIFY_SHOPS[shop],
         });
 
         if (!response.success) {
@@ -77,30 +82,73 @@ app.prepare().then(async () => {
       console.log(`Failed to process webhook: ${error}`);
     }
   });
-  router.post("/checkoutCreate", async (ctx, next) => {
-    await next();
-    try {
-      let body = ctx.body;
-      if (!body || body.pipe) return;
-      console.log("test" + ctx.toString());
-
-      if (Buffer.isBuffer(body)) body = body.toString();
-      console.log(body);
-    } catch (error) {
-      console.log(`Failed to process webhook: ${error}`);
-    }
-  });
-
-  router.post(
-    "/graphql",
-    verifyRequest({ returnHeader: true }),
-    async (ctx, next) => {
-      await Shopify.Utils.graphqlProxy(ctx.req, ctx.res);
-    }
-  );
 
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
   router.get("/_next/webpack-hmr", handleRequest); // Webpack content is clear
+
+  router.get("/settings", async (ctx) => {
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+    const shop = session.shop;
+
+    // This shop hasn't been seen yet, go through OAuth to create a session
+    if (session === undefined || ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+      ctx.redirect(`/auth?shop=${shop}`);
+      return;
+    }
+
+    const shopSettings = ACTIVE_SHOPIFY_SHOPS[shop].settings;
+
+    if (!shopSettings.productId) {
+      ctx.status = 200;
+      ctx.body = {
+        status: "EMPTY_SETTINGS",
+        data: undefined,
+      };
+      return;
+    }
+
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    const productDetails = await client.get({
+      path: `products/${shopSettings.productId}`,
+      type: DataType.JSON,
+    });
+
+    ctx.body = {
+      status: "OK_SETTINGS",
+      data: productDetails.body.product,
+    };
+    ctx.status = 200;
+  });
+
+  router.post("/settings", async (ctx) => {
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+    const shop = session.shop;
+
+    // This shop hasn't been seen yet, go through OAuth to create a session
+    if (session === undefined || ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+      ctx.redirect(`/auth?shop=${shop}`);
+      return;
+    }
+
+    const productIdStruct = JSON.parse(ctx.request.body).productId.split("/");
+    const productId = productIdStruct[productIdStruct.length - 1];
+
+    ACTIVE_SHOPIFY_SHOPS[shop].settings = { productId };
+
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    const productDetails = await client.get({
+      path: `products/${productId}`,
+      type: DataType.JSON,
+    });
+
+    ctx.body = {
+      status: "OK_SETTINGS",
+      data: productDetails.body.product,
+    };
+    ctx.status = 200;
+  });
   router.get("(.*)", async (ctx) => {
     const shop = ctx.query.shop;
 
@@ -113,6 +161,7 @@ app.prepare().then(async () => {
   });
 
   server.use(router.allowedMethods());
+  server.use(koaBody());
   server.use(router.routes());
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`);
