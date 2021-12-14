@@ -31,7 +31,7 @@ const useSettingsManagement = () => {
     setIsLoading(true);
     try {
       const token = await getSessionToken(app);
-      const res = await fetch("/custom", {
+      const res = await fetch("/settings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const responseData = await res.json();
@@ -40,7 +40,8 @@ const useSettingsManagement = () => {
       }
 
       if (responseData.status === "OK_SETTINGS") {
-        console.log(responseData.data);
+        console.log(JSON.stringify(responseData, data));
+        setSettingsObj(responseData.data);
         return;
       }
 
