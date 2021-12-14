@@ -137,7 +137,7 @@ app.prepare().then(async () => {
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
 
     const customerList = await client.get({
-      path: "customers",
+      path: "custom",
       type: DataType.JSON,
     });
 

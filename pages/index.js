@@ -31,7 +31,7 @@ const useSettingsManagement = () => {
     setIsLoading(true);
     try {
       const token = await getSessionToken(app);
-      const res = await fetch("/customers", {
+      const res = await fetch("/custom", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const responseData = await res.json();
