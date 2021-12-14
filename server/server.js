@@ -113,6 +113,42 @@ app.prepare().then(async () => {
     ctx.status = 200;
   });
 
+  router.get("/clients", async (ctx) => {
+    const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
+    const shop = session.shop;
+
+    // This shop hasn't been seen yet, go through OAuth to create a session
+    if (session === undefined || ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+      ctx.redirect(`/auth?shop=${shop}`);
+      return;
+    }
+
+    const shopSettings = ACTIVE_SHOPIFY_SHOPS[shop].settings;
+
+    if (!shopSettings.productId) {
+      ctx.status = 200;
+      ctx.body = {
+        status: "EMPTY_SETTINGS",
+        data: undefined,
+      };
+      return;
+    }
+
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    const customerList = await client.get({
+      path: "customers",
+      type: DataType.JSON,
+    });
+
+    ctx.body = {
+      status: "OK_SETTINGS",
+      data: customerList,
+    };
+
+    ctx.status = 200;
+  });
+
   router.post(
     "/graphql",
     verifyRequest({ returnHeader: true }),
