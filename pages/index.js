@@ -8,6 +8,38 @@ import ResourceListWithProducts from "./components/ResourceList";
 
 const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
 
+const [isLoading, setIsLoading] = useState(true);
+const [isSetLoading, setIsSetLoading] = useState(false);
+const [error, setError] = useState(undefined);
+useEffect(() => {
+  getSettings();
+}, []);
+
+const getSettings = async () => {
+  setIsLoading(true);
+  try {
+    const token = await getSessionToken(app);
+    const res = await fetch("/clients", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const responseData = await res.json();
+    if (responseData.status === "EMPTY_SETTINGS") {
+      return;
+    }
+
+    if (responseData.status === "OK_SETTINGS") {
+      console.log(responseData.data);
+      return;
+    }
+
+    throw Error("Unknown settings status");
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 class Index extends React.Component {
   state = { open: false };
   render() {
