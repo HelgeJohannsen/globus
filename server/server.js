@@ -113,7 +113,7 @@ app.prepare().then(async () => {
     ctx.status = 200;
   });
 
-  router.get("/clients", async (ctx) => {
+  router.get("/custom", async (ctx) => {
     const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
     const shop = session.shop;
 
@@ -137,7 +137,7 @@ app.prepare().then(async () => {
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
 
     const customerList = await client.get({
-      path: "custom",
+      path: "customers",
       type: DataType.JSON,
     });
 
