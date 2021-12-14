@@ -105,7 +105,6 @@ app.prepare().then(async () => {
       path: `products/${shopSettings.productId}`,
       type: DataType.JSON,
     });
-    console.log(JSON.stringify(productDetails, data));
     ctx.body = {
       status: "OK_SETTINGS",
       data: productDetails.body.product,
