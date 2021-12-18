@@ -60,7 +60,23 @@ app.prepare().then(async () => {
             `Failed to register APP_UNINSTALLED webhook: ${response.result}`
           );
         }
-
+        /* Register webhook for cart update*/
+        const registrationCartUpdate = await Shopify.Webhooks.Registry.register({
+          shop,
+          accessToken,
+          path: '/webhooks',
+          topic: 'CARTS_UPDATE',
+          webhookHandler: async (_topic, shop, body) => {
+            console.log('received cart update webhook: ');
+            const obj = JSON.parse(body);
+            console.log(obj);
+          },
+        });
+        if (registrationCartUpdate.success) {
+          console.log('Successfully registered cart update webhook!');
+        } else {
+          console.log('Failed to register cart update webhook', registrationCartUpdate.result);
+        }
         // Redirect to app with shop parameter upon auth
         ctx.redirect(`/?shop=${shop}&host=${host}`);
       },
