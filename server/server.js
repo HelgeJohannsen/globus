@@ -98,6 +98,12 @@ app.prepare().then(async () => {
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
     }
+    const client = new Shopify.Clients.Rest('your-development-store.myshopify.com', accessToken);
+    const data = await client.get({
+      path: 'webhooks',
+    });
+    console.log("data");
+    console.log(data);
   });
 
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
