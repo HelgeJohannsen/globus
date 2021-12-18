@@ -92,18 +92,21 @@ app.prepare().then(async () => {
   };
 
   router.post("/webhooks", async (ctx) => {
+    const client = new Shopify.Clients.Rest('your-development-store.myshopify.com', accessToken);
+    const data = await client.post({
+      path: 'webhooks',
+      data: {"webhook":{"topic":"orders\/create","address":"https:\/\/https://globusapp.herokuapp.com\/","format":"json","fields":["id","note"]}},
+      type: DataType.JSON,
+    });
+    console.log("data");
+    console.log(data);
     try {
       await Shopify.Webhooks.Registry.process(ctx.req, ctx.res);
       console.log(`Webhook processed, returned status code 200`);
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
     }
-    const client = new Shopify.Clients.Rest('your-development-store.myshopify.com', accessToken);
-    const data = await client.get({
-      path: 'webhooks',
-    });
-    console.log("data");
-    console.log(data);
+
   });
 
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
