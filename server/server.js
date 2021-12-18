@@ -134,7 +134,8 @@ app.prepare().then(async () => {
 
     const productIdStruct = JSON.parse(ctx.request.body).productId.split("/");
     const productId = productIdStruct[productIdStruct.length - 1];
-
+    console.log("ctx.query");
+    console.log(ctx.query);
     ACTIVE_SHOPIFY_SHOPS[shop].settings = { productId };
 
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
