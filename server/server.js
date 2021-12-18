@@ -49,32 +49,6 @@ app.prepare().then(async () => {
           },
         };
 
-        const response = await Shopify.Webhooks.Registry.register({
-          shop,
-          accessToken,
-          path: "/webhooks",
-          topic: "APP_UNINSTALLED",
-          webhookHandler: async (_, shop) => delete ACTIVE_SHOPIFY_SHOPS[shop],
-        });
-        /* Register webhook for cart create */
-        const registrationCartCreate = await Shopify.Webhooks.Registry.register({
-          shop,
-          accessToken,
-          path: '/webhooks',
-          topic: 'CARTS_CREATE',
-          webhookHandler: (_topic, shop, body) => {
-            console.log('received cart created webhook: ');
-            const obj = JSON.parse(body);
-            console.log(obj);
-          },
-        });
-        if (registrationCartCreate.success) {
-          console.log('Successfully registered cart create webhook!');
-        } else {
-          console.log('Failed to register cart create webhook', registrationCartCreate.result);
-        }
-
-
         if (!response.success) {
           console.log(
             `Failed to register APP_UNINSTALLED webhook: ${response.result}`
@@ -86,6 +60,30 @@ app.prepare().then(async () => {
       },
     })
   );
+  const response = await Shopify.Webhooks.Registry.register({
+    shop,
+    accessToken,
+    path: "/webhooks",
+    topic: "APP_UNINSTALLED",
+    webhookHandler: async (_, shop) => delete ACTIVE_SHOPIFY_SHOPS[shop],
+  });
+  /* Register webhook for cart create */
+  const registrationCartCreate = await Shopify.Webhooks.Registry.register({
+    shop,
+    accessToken,
+    path: '/webhooks',
+    topic: 'CARTS_CREATE',
+    webhookHandler: (_topic, shop, body) => {
+      console.log('received cart created webhook: ');
+      const obj = JSON.parse(body);
+      console.log(obj);
+    },
+  });
+  if (registrationCartCreate.success) {
+    console.log('Successfully registered cart create webhook!');
+  } else {
+    console.log('Failed to register cart create webhook', registrationCartCreate.result);
+  }
 
   const handleRequest = async (ctx) => {
     await handle(ctx.req, ctx.res);
