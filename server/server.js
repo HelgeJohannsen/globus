@@ -122,7 +122,7 @@ app.prepare().then(async () => {
     ctx.status = 200;
   });
 
-  router.post('/webhooks/order', webhook, async (ctx) =>{
+  router.post('/webhooks/order', (ctx) =>{
     console.log("webhook order");
     console.log(ctx.query);
     ctx.status = 200;
