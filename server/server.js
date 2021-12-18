@@ -125,6 +125,8 @@ app.prepare().then(async () => {
   router.post('/webhooks/order', (ctx) =>{
     console.log("webhook order");
     console.log("this:" + ctx.req);
+    console.log( "this2:" +    JSON.parse(ctx.request.body));
+    console.log("this:" + JSON.parse(ctx.req));
     ctx.status = 200;
   })
 
