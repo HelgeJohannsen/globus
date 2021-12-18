@@ -140,12 +140,6 @@ app.prepare().then(async () => {
     ctx.status = 200;
   });
 
-  router.post('/webhooks/order', (ctx) =>{
-    console.log("webhook order");
-    console.log("webhook order" + ctx.req);
-    JSON.parse(ctx.request.body)
-    ctx.status = 200;
-  })
 
   router.post("/settings", async (ctx) => {
     const session = await Shopify.Utils.loadCurrentSession(ctx.req, ctx.res);
