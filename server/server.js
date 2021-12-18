@@ -48,7 +48,13 @@ app.prepare().then(async () => {
             productId: undefined,
           },
         };
-
+        const response = await Shopify.Webhooks.Registry.register({
+          shop,
+          accessToken,
+          path: "/webhooks",
+          topic: "APP_UNINSTALLED",
+          webhookHandler: async (_, shop) => delete ACTIVE_SHOPIFY_SHOPS[shop],
+        });
         if (!response.success) {
           console.log(
             `Failed to register APP_UNINSTALLED webhook: ${response.result}`
@@ -60,13 +66,7 @@ app.prepare().then(async () => {
       },
     })
   );
-  const response = await Shopify.Webhooks.Registry.register({
-    shop,
-    accessToken,
-    path: "/webhooks",
-    topic: "APP_UNINSTALLED",
-    webhookHandler: async (_, shop) => delete ACTIVE_SHOPIFY_SHOPS[shop],
-  });
+
   /* Register webhook for cart create */
   const registrationCartCreate = await Shopify.Webhooks.Registry.register({
     shop,
