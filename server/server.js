@@ -92,7 +92,7 @@ app.prepare().then(async () => {
   };
 
   router.post("/webhooks", async (ctx) => {
-    const client = new Shopify.Clients.Rest('your-development-store.myshopify.com', accessToken);
+    const client = new Shopify.Clients.Rest('helgedev.myshopify.com', accessToken);
     const data = await client.post({
       path: 'webhooks',
       data: {"webhook":{"topic":"orders\/create","address":"https:\/\/https://globusapp.herokuapp.com\/","format":"json","fields":["id","note"]}},
